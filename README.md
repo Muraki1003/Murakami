@@ -25,3 +25,5 @@
 将来の拡張可能性
 
 参考資料
+https://w-health.jp/bmi/
+https://www.e-healthnet.mhlw.go.jp/information/dictionary/metabolic/ym-002.html
