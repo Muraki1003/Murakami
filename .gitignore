@@ -1,0 +1,6 @@
+# Exclude Python cache and virtual environment directories
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
