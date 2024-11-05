@@ -1,0 +1,29 @@
+<!-- templates/set_goal.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>BMI目標設定</h1>
+    <form method="POST">
+        <div class="form-group">
+            <label for="target_bmi">目標BMI</label>
+            <input type="number" id="target_bmi" name="target_bmi" step="0.1" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="target_date">目標達成日</label>
+            <input type="date" id="target_date" name="target_date" required>
+        </div>
+        
+        <button type="submit">目標を設定</button>
+    </form>
+    
+    {% if current_user.bmi_goal %}
+    <div class="mt-4">
+        <h2>現在の目標</h2>
+        <p>目標BMI: {{ current_user.bmi_goal.target_bmi }}</p>
+        <p>目標達成日: {{ current_user.bmi_goal.target_date.strftime('%Y-%m-%d') }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,98 +1,213 @@
 <!-- templates/index.html -->
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMI計算機</title>
-    <style>
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-        }
-        input[type="number"] {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #e8f5e9;
-            border-radius: 4px;
-        }
-        .error {
-            color: red;
-            margin-top: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>BMI計算機</h1>
-        
-        <form method="POST">
-            <div class="form-group">
-                <label for="height">身長 (cm)</label>
-                <input type="number" id="height" name="height" step="0.1" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="weight">体重 (kg)</label>
-                <input type="number" id="weight" name="weight" step="0.1" required>
-            </div>
-            
-            <button type="submit">計算する</button>
-        </form>
+{% extends "base.html" %}
 
-        {% if error %}
-        <div class="error">
-            {{ error }}
-        </div>
-        {% endif %}
-
-        {% if result %}
-        <div class="result">
-            <h3>計算結果</h3>
-            <p>あなたのBMI: <strong>{{ result.bmi }}</strong></p>
-            <p>判定: <strong>{{ result.status }}</strong></p>
-            <p>アドバイス: {{ result.advice }}</p>
-        </div>
-        {% endif %}
+{% block content %}
+<div class="container">
+    <h1>BMI計算機</h1>
+    
+    {% if not current_user.height %}
+    <div class="alert alert-info">
+        初回利用時は身長の入力が必要です。
     </div>
-</body>
-</html>
+    {% else %}
+    <div class="current-height">
+        <p>現在の身長: {{ (current_user.height * 100)|round(1) }} cm</p>
+        <button onclick="toggleHeightUpdate()" class="btn-secondary">身長を更新</button>
+    </div>
+    {% endif %}
+    
+    <div id="height-update-form" style="display: none;">
+        <form method="POST" action="{{ url_for('update_height') }}" class="mt-3">
+            <div class="form-group">
+                <label for="new-height">新しい身長 (cm)</label>
+                <input type="number" id="new-height" name="height" step="0.1" required 
+                       value="{{ (current_user.height * 100)|round(1) if current_user.height }}">
+            </div>
+            <button type="submit">更新</button>
+        </form>
+    </div>
+    
+    <form method="POST" class="mt-4">
+        {% if not current_user.height %}
+        <div class="form-group">
+            <label for="height">身長 (cm)</label>
+            <input type="number" id="height" name="height" step="0.1" required>
+        </div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label for="weight">体重 (kg)</label>
+            <input type="number" id="weight" name="weight" step="0.1" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="record_date">記録日 (デバッグ用)</label>
+            <input type="date" id="record_date" name="record_date" 
+                   value="{{ today.strftime('%Y-%m-%d') if today }}">
+        </div>
+        
+        <button type="submit">計算する</button>
+    </form>
+
+    {% if result %}
+    <div class="result">
+        <h3>計算結果</h3>
+        <p>あなたのBMI: <strong>{{ result.bmi }}</strong></p>
+        <p>判定: <strong>{{ result.status }}</strong></p>
+        <p>アドバイス: {{ result.advice }}</p>
+    </div>
+    {% endif %}
+</div>
+
+{% if current_user.bmi_goal %}
+<div class="container">
+    <h2>目標</h2>
+    <p>目標BMI: {{ current_user.bmi_goal.target_bmi }}</p>
+    <p>目標日: {{ current_user.bmi_goal.target_date.strftime('%Y-%m-%d') }}</p>
+</div>
+{% endif %}
+
+{% if records %}
+<div class="container">
+    <h2>BMI推移</h2>
+    <div id="bmi-chart" style="width: 100%; height: 400px;"></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/get_bmi_data')
+            .then(response => response.json())
+            .then(data => {
+                const sortedData = data.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                const LineChart = Recharts.LineChart;
+                const Line = Recharts.Line;
+                const XAxis = Recharts.XAxis;
+                const YAxis = Recharts.YAxis;
+                const CartesianGrid = Recharts.CartesianGrid;
+                const Tooltip = Recharts.Tooltip;
+                const Legend = Recharts.Legend;
+                const ResponsiveContainer = Recharts.ResponsiveContainer;
+
+                const chart = React.createElement(
+                    LineChart,
+                    {
+                        width: 800,
+                        height: 400,
+                        data: sortedData,
+                        margin: { top: 20, right: 30, left: 20, bottom: 10 }
+                    },
+                    [
+                        React.createElement(CartesianGrid, { 
+                            key: "grid",
+                            strokeDasharray: "3 3" 
+                        }),
+                        React.createElement(XAxis, { 
+                            key: "x-axis",
+                            dataKey: "date" 
+                        }),
+                        React.createElement(YAxis, { 
+                            key: "y-axis" 
+                        }),
+                        React.createElement(Tooltip, { 
+                            key: "tooltip" 
+                        }),
+                        React.createElement(Legend, { 
+                            key: "legend" 
+                        }),
+                        React.createElement(Line, {
+                            key: "bmi-line",
+                            type: "monotone",
+                            dataKey: "bmi",
+                            stroke: "#8884d8",
+                            name: "BMI",
+                            dot: true
+                        }),
+                        React.createElement(Line, {
+                            key: "weight-line",
+                            type: "monotone",
+                            dataKey: "weight",
+                            stroke: "#82ca9d",
+                            name: "体重(kg)",
+                            dot: true
+                        })
+                    ]
+                );
+
+                ReactDOM.render(chart, document.getElementById('bmi-chart'));
+            })
+            .catch(error => {
+                console.error('グラフの描画中にエラーが発生しました:', error);
+                document.getElementById('bmi-chart').innerHTML = 'グラフの読み込みに失敗しました。';
+            });
+    });
+    </script>
+</div>
+
+<div class="container">
+    <h2>測定履歴</h2>
+    <div class="table-responsive">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>日付</th>
+                    <th>身長 (cm)</th>
+                    <th>体重 (kg)</th>
+                    <th>BMI</th>
+                    <th>判定</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records|sort(attribute='date', reverse=True) %}
+                <tr>
+                    <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ (record.height * 100)|round(1) }}</td>
+                    <td>{{ record.weight|round(1) }}</td>
+                    <td>{{ record.bmi|round(1) }}</td>
+                    <td>{{ get_bmi_status(record.bmi)[0] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.history-table th,
+.history-table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.history-table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+.history-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.history-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+</style>
+
+<script>
+function toggleHeightUpdate() {
+    const form = document.getElementById('height-update-form');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+{% endif %}
+{% endblock %}
