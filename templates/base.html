@@ -1,0 +1,123 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMI計算機</title>
+    <!-- React と ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Recharts と依存関係 -->
+    <script src="https://unpkg.com/prop-types@15.7.2/prop-types.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.10.1/umd/Recharts.js"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .nav {
+            background-color: #333;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+        .nav a:hover {
+            color: #ddd;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .flash {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f5e9;
+            border-radius: 4px;
+        }
+        .current-height {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #e3f2fd;
+            border-radius: 4px;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .mt-3 {
+            margin-top: 15px;
+        }
+        .mt-4 {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('index') }}">ホーム</a>
+            <a href="{{ url_for('set_goal') }}">目標設定</a>
+            <a href="{{ url_for('logout') }}">ログアウト</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">ログイン</a>
+            <a href="{{ url_for('register') }}">新規登録</a>
+        {% endif %}
+    </div>
+    
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="flash">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    {% block content %}{% endblock %}
+</body>
+</html>
