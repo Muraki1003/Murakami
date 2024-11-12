@@ -4,4 +4,7 @@ __pycache__/
 *.pyo
 *.pyd
 venv/
+instance/
+*.db
+
 
