@@ -62,12 +62,26 @@
 {% if current_user.bmi_goal %}
 <div class="container">
     <h2>目標</h2>
+    <div class="goal-info">
+        <p>目標BMI: <strong>{{ current_user.bmi_goal.target_bmi }}</strong></p>
+        <p>目標日: <strong>{{ current_user.bmi_goal.target_date.strftime('%Y-%m-%d') }}</strong></p>
+        {% if current_user.height %}
+            {% set target_weight = (current_user.bmi_goal.target_bmi * current_user.height * current_user.height)|round(1) %}
+            <p>目標体重: <strong>{{ target_weight }} kg</strong></p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% if current_user.bmi_goal %}
+<div class="container">
+    <h2>目標</h2>
     <p>目標BMI: {{ current_user.bmi_goal.target_bmi }}</p>
     <p>目標日: {{ current_user.bmi_goal.target_date.strftime('%Y-%m-%d') }}</p>
 </div>
 {% endif %}
 
-{% if records %}
+
 <div class="container">
     <h2>BMI推移</h2>
     <div id="bmi-chart" style="width: 100%; height: 400px;"></div>
@@ -209,5 +223,5 @@ function toggleHeightUpdate() {
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
 </script>
-{% endif %}
+
 {% endblock %}
