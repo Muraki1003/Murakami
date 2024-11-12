@@ -73,13 +73,6 @@
 </div>
 {% endif %}
 
-{% if current_user.bmi_goal %}
-<div class="container">
-    <h2>目標</h2>
-    <p>目標BMI: {{ current_user.bmi_goal.target_bmi }}</p>
-    <p>目標日: {{ current_user.bmi_goal.target_date.strftime('%Y-%m-%d') }}</p>
-</div>
-{% endif %}
 
 
 <div class="container">
