@@ -179,3 +179,46 @@ def set_goal():
         return redirect(url_for('index'))
     
     return render_template('set_goal.html')
+
+@app.route('/add_health_data', methods=['GET', 'POST'])
+@login_required
+def add_health_data():
+    if request.method == 'POST':
+        try:
+            # フォームからデータを取得
+            date = datetime.strptime(request.form['date'], '%Y-%m-%d')
+            height = float(request.form['height']) / 100  # cmをmに変換
+            weight = float(request.form['weight'])
+            bmi = calculate_bmi(weight, height)
+            blood_pressure_systolic = int(request.form.get('blood_pressure_systolic', 0))
+            blood_pressure_diastolic = int(request.form.get('blood_pressure_diastolic', 0))
+            blood_sugar = float(request.form.get('blood_sugar', 0))
+            hba1c = float(request.form.get('hba1c', 0))
+            cholesterol_hdl = float(request.form.get('cholesterol_hdl', 0))
+            cholesterol_ldl = float(request.form.get('cholesterol_ldl', 0))
+            total_cholesterol = float(request.form.get('total_cholesterol', 0))
+
+            # 健康診断データを保存
+            record = HealthCheckRecord(
+                user_id=current_user.id,
+                date=date,
+                height=height,
+                weight=weight,
+                bmi=bmi,
+                blood_pressure_systolic=blood_pressure_systolic,
+                blood_pressure_diastolic=blood_pressure_diastolic,
+                blood_sugar=blood_sugar,
+                hba1c=hba1c,
+                cholesterol_hdl=cholesterol_hdl,
+                cholesterol_ldl=cholesterol_ldl,
+                total_cholesterol=total_cholesterol
+            )
+            db.session.add(record)
+            db.session.commit()
+            flash('健康診断データを追加しました。')
+        except ValueError:
+            flash('正しい値を入力してください。')
+        return redirect(url_for('add_health_data'))
+
+    return render_template('add_health_data.html')
+
