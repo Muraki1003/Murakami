@@ -34,3 +34,27 @@ class BMIGoal(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     target_bmi = db.Column(db.Float, nullable=False)
     target_date = db.Column(db.DateTime, nullable=False)
+    
+from config import db
+
+class HealthCheckRecord(db.Model):
+    __tablename__ = 'health_check_records'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    height = db.Column(db.Float)  # 身長 (m)
+    weight = db.Column(db.Float)  # 体重 (kg)
+    bmi = db.Column(db.Float)  # BMI
+    blood_pressure_systolic = db.Column(db.Integer)  # 収縮期血圧
+    blood_pressure_diastolic = db.Column(db.Integer)  # 拡張期血圧
+    blood_sugar = db.Column(db.Float)  # 血糖値
+    hba1c = db.Column(db.Float)  # HbA1c
+    cholesterol_hdl = db.Column(db.Float)  # HDLコレステロール
+    cholesterol_ldl = db.Column(db.Float)  # LDLコレステロール
+    total_cholesterol = db.Column(db.Float)  # 総コレステロール
+
+    user = db.relationship('User', back_populates='health_records')
+
+class User(db.Model):
+    # 既存フィールド
+    health_records = db.relationship('HealthCheckRecord', back_populates='user', cascade='all, delete-orphan')
