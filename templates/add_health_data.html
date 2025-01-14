@@ -1,0 +1,64 @@
+<h1>健康診断データの入力</h1>
+<form method="POST" action="{{ url_for('health_check') }}">
+    <label for="date">実施日:</label>
+    <input type="date" name="date" required>
+    
+    <label for="height">身長 (cm):</label>
+    <input type="number" step="0.1" name="height" required>
+    
+    <label for="weight">体重 (kg):</label>
+    <input type="number" step="0.1" name="weight" required>
+    
+    <label for="blood_pressure_systolic">収縮期血圧:</label>
+    <input type="number" name="blood_pressure_systolic" required>
+    
+    <label for="blood_pressure_diastolic">拡張期血圧:</label>
+    <input type="number" name="blood_pressure_diastolic" required>
+    
+    <label for="blood_sugar">血糖値:</label>
+    <input type="number" step="0.1" name="blood_sugar" required>
+    
+    <label for="hba1c">HbA1c:</label>
+    <input type="number" step="0.1" name="hba1c" required>
+    
+    <label for="cholesterol_hdl">HDLコレステロール:</label>
+    <input type="number" step="0.1" name="cholesterol_hdl" required>
+    
+    <label for="cholesterol_ldl">LDLコレステロール:</label>
+    <input type="number" step="0.1" name="cholesterol_ldl" required>
+    
+    <label for="total_cholesterol">総コレステロール:</label>
+    <input type="number" step="0.1" name="total_cholesterol" required>
+    
+    <button type="submit">登録</button>
+</form>
+
+<h2>過去の健康診断データ</h2>
+<table>
+    <thead>
+        <tr>
+            <th>日付</th>
+            <th>身長</th>
+            <th>体重</th>
+            <th>BMI</th>
+            <th>血圧</th>
+            <th>血糖値</th>
+            <th>HbA1c</th>
+            <th>コレステロール</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for record in records %}
+        <tr>
+            <td>{{ record.date }}</td>
+            <td>{{ record.height * 100 }} cm</td>
+            <td>{{ record.weight }} kg</td>
+            <td>{{ record.bmi }}</td>
+            <td>{{ record.blood_pressure_systolic }}/{{ record.blood_pressure_diastolic }}</td>
+            <td>{{ record.blood_sugar }}</td>
+            <td>{{ record.hba1c }}</td>
+            <td>HDL: {{ record.cholesterol_hdl }}, LDL: {{ record.cholesterol_ldl }}, Total: {{ record.total_cholesterol }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
