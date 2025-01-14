@@ -4,13 +4,12 @@
 {% block content %}
 <div class="container">
     <h1>食事記録履歴</h1>
-    
     <div class="meal-records">
         {% for meal in meals %}
         <div class="meal-card">
             <div class="meal-image">
                 {% if meal.image_path %}
-                    <img src="{{ url_for('static', filename=meal.image_path) }}" 
+                    <img src="{{ url_for('static', filename=meal.image_path) }}"
                          alt="{{ meal.dish_name }}"
                          onError="this.onerror=null;this.src='{{ url_for('static', filename='default-meal.png') }}';">
                 {% else %}
@@ -20,7 +19,6 @@
             <div class="meal-info">
                 <h3>{{ meal.dish_name }}</h3>
                 <p class="meal-date">{{ meal.date.strftime('%Y-%m-%d %H:%M') }} - {{ meal.meal_type }}</p>
-                
                 <div class="nutrition-info">
                     <h4>栄養情報</h4>
                     <ul>
