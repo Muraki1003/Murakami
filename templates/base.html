@@ -103,13 +103,14 @@
         {% if current_user.is_authenticated %}
             <a href="{{ url_for('index') }}">ホーム</a>
             <a href="{{ url_for('set_goal') }}">目標設定</a>
+            <a href="{{ url_for('add_meal') }}">食事記録</a>
+            <a href="{{ url_for('meal_history') }}">食事履歴</a>
             <a href="{{ url_for('logout') }}">ログアウト</a>
         {% else %}
             <a href="{{ url_for('login') }}">ログイン</a>
             <a href="{{ url_for('register') }}">新規登録</a>
         {% endif %}
     </div>
-    
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             {% for message in messages %}

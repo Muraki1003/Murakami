@@ -1,0 +1,116 @@
+<!-- templates/meal_history.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>食事記録履歴</h1>
+    
+    <div class="meal-records">
+        {% for meal in meals %}
+        <div class="meal-card">
+            <div class="meal-image">
+                {% if meal.image_path %}
+                    <img src="{{ url_for('static', filename=meal.image_path) }}" 
+                         alt="{{ meal.dish_name }}"
+                         onError="this.onerror=null;this.src='{{ url_for('static', filename='default-meal.png') }}';">
+                {% else %}
+                    <img src="{{ url_for('static', filename='default-meal.png') }}" alt="No image available">
+                {% endif %}
+            </div>
+            <div class="meal-info">
+                <h3>{{ meal.dish_name }}</h3>
+                <p class="meal-date">{{ meal.date.strftime('%Y-%m-%d %H:%M') }} - {{ meal.meal_type }}</p>
+                
+                <div class="nutrition-info">
+                    <h4>栄養情報</h4>
+                    <ul>
+                        <li>カロリー: {{ meal.calories|round(1) }} kcal</li>
+                        <li>タンパク質: {{ meal.protein|round(1) }}g</li>
+                        <li>脂質: {{ meal.fat|round(1) }}g</li>
+                        <li>炭水化物: {{ meal.carbohydrate|round(1) }}g</li>
+                        {% if meal.fiber %}
+                        <li>食物繊維: {{ meal.fiber|round(1) }}g</li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                {% if meal.notes %}
+                <div class="notes">
+                    <h4>詳細情報</h4>
+                    <pre class="notes-content">{{ meal.notes }}</pre>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.meal-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 15px;
+    display: flex;
+    gap: 20px;
+    background-color: white;
+}
+
+.meal-image img {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.meal-info {
+    flex: 1;
+}
+
+.meal-date {
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}
+
+.nutrition-info, .notes {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.nutrition-info ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.nutrition-info li {
+    margin-bottom: 5px;
+}
+
+.notes-content {
+    white-space: pre-wrap;
+    font-family: inherit;
+    margin: 0;
+    padding: 10px;
+    background-color: white;
+    border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+    .meal-card {
+        flex-direction: column;
+    }
+    
+    .meal-image img {
+        width: 100%;
+        height: auto;
+    }
+}
+</style>
+{% endblock %}
