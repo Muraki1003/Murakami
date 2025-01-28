@@ -1,0 +1,253 @@
+<!-- templates/add_meal.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>食事記録の追加</h1>
+    
+    <!-- 画像アップロードと解析フォーム -->
+    <div class="upload-section mb-4">
+        <h3>Step 1: 写真をアップロードして解析</h3>
+        <div class="form-group">
+            <label for="food_image">料理の写真</label>
+            <input type="file" id="food_image" name="food_image" accept="image/*">
+            <div id="image_preview" class="mt-2"></div>
+        </div>
+        <button type="button" id="analyzeButton" onclick="analyzeImage()" class="btn-primary">写真を解析</button>
+    </div>
+
+    <!-- 解析結果と記録フォーム -->
+    <form method="POST" enctype="multipart/form-data" id="mealForm">
+        <h3>Step 2: 解析結果の確認と記録</h3>
+        <div class="form-group">
+            <label for="meal_type">食事の種類</label>
+            <select id="meal_type" name="meal_type" required>
+                <option value="breakfast">朝食</option>
+                <option value="lunch">昼食</option>
+                <option value="dinner">夕食</option>
+                <option value="snack">間食</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>料理の数</label>
+            <select id="dish_count" name="dish_count" onchange="updateDishForms()">
+                <option value="1">1品</option>
+                <option value="2">2品</option>
+                <option value="3">3品</option>
+                <option value="4">4品</option>
+                <option value="5">5品</option>
+            </select>
+        </div>
+
+        <div id="dish_forms">
+            <!-- 料理フォームがJSで動的に追加されます -->
+        </div>
+        
+        <div class="form-group">
+            <label for="notes">メモ</label>
+            <textarea id="notes" name="notes" rows="3"></textarea>
+        </div>
+        
+        <button type="submit" id="submitButton">記録する</button>
+    </form>
+</div>
+
+<!-- ローディングオーバーレイ -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <p>料理を解析中です...</p>
+    </div>
+</div>
+
+<style>
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.dish-form {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.dish-form h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.mb-4 {
+    margin-bottom: 20px;
+}
+
+.btn-primary {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.btn-primary:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.upload-section {
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+</style>
+
+<script>
+// 解析用の関数
+async function analyzeImage() {
+    const fileInput = document.getElementById('food_image');
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert('写真を選択してください');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('food_image', fileInput.files[0]);
+
+    showLoading();
+    try {
+        const response = await fetch('/analyze_image', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error('解析に失敗しました');
+        }
+
+        const results = await response.json();
+        updateDishFormsWithResults(results);
+        hideLoading();
+    } catch (error) {
+        hideLoading();
+        alert('解析中にエラーが発生しました: ' + error.message);
+    }
+}
+
+function showLoading() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    document.getElementById('analyzeButton').disabled = true;
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+    document.getElementById('analyzeButton').disabled = false;
+}
+
+function updateDishFormsWithResults(results) {
+    const count = results.length;
+    document.getElementById('dish_count').value = count.toString();
+    updateDishForms();
+
+    results.forEach((result, i) => {
+        document.getElementById(`dish_name_${i}`).value = result.dish_name || '';
+        document.getElementById(`calories_${i}`).value = result.calories || '';
+        document.getElementById(`protein_${i}`).value = result.protein || '';
+        document.getElementById(`fat_${i}`).value = result.fat || '';
+        document.getElementById(`carbs_${i}`).value = result.carbohydrate || '';
+        document.getElementById(`location_${i}`).value = result.location || '';
+    });
+}
+
+function updateDishForms() {
+    const count = parseInt(document.getElementById('dish_count').value);
+    const container = document.getElementById('dish_forms');
+    container.innerHTML = '';
+    
+    for (let i = 0; i < count; i++) {
+        const dishForm = document.createElement('div');
+        dishForm.className = 'dish-form';
+        dishForm.innerHTML = `
+            <h3>${i + 1}品目</h3>
+            <div class="form-group">
+                <label for="dish_name_${i}">料理名</label>
+                <input type="text" id="dish_name_${i}" name="dish_name_${i}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="calories_${i}">カロリー (kcal)</label>
+                <input type="number" id="calories_${i}" name="calories_${i}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="protein_${i}">タンパク質 (g)</label>
+                <input type="number" id="protein_${i}" name="protein_${i}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="fat_${i}">脂質 (g)</label>
+                <input type="number" id="fat_${i}" name="fat_${i}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="carbs_${i}">炭水化物 (g)</label>
+                <input type="number" id="carbs_${i}" name="carbs_${i}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="location_${i}">写真内の位置</label>
+                <input type="text" id="location_${i}" name="location_${i}" class="form-control" placeholder="例：左上、中央、右下">
+            </div>
+        `;
+        container.appendChild(dishForm);
+    }
+}
+
+// 画像プレビュー機能
+document.getElementById('food_image').addEventListener('change', function(e) {
+    const preview = document.getElementById('image_preview');
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        preview.innerHTML = `<img src="${e.target.result}" style="max-width: 300px; height: auto;">`;
+    }
+    
+    if (file) {
+        reader.readAsDataURL(file);
+    }
+});
+
+// 初期フォームの表示
+updateDishForms();
+</script>
+{% endblock %}

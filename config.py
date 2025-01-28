@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 import secrets
 import os
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///bmi.db'
@@ -27,10 +28,7 @@ def init_db():
     if not os.path.exists(db_path):
         with app.app_context():
             # モデルをインポート（循環インポートを避けるため、ここでインポート）
-            from models import User, BMIRecord, BMIGoal
+            from models import User, BMIRecord, BMIGoal, MealRecord
             print("データベースを初期化しています...")
             db.create_all()
             print("データベースの初期化が完了しました")
-
-# アプリケーション起動時にデータベースを初期化
-init_db()
